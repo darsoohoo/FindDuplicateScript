@@ -1,5 +1,15 @@
 # Find duplicate remote paths
 
+## Find blank remote paths
+
+```powershell
+.\Find-BlankRemotePaths.ps1 -FolderPath 'C:\Data\CsvFiles' -OutputPath 'C:\Reports\blank-remote-paths.csv'
+```
+
+Finds rows where `remote_path` is empty (including CSV `""`) or contains only whitespace. Preserves all original columns and adds `SourceFile` and `DataRow` (the record number after the header, starting at 1). If these names already exist in input, metadata names gain leading underscores until unique. Different input schemas are combined without dropping columns.
+
+Supports `-Recurse`, `-Delimiter`, and `-ProgressIntervalSeconds` (default 5), with automatic console progress. The default report is `blank-remote-paths.csv` in the input folder. Source files are unchanged and reports cannot be overwritten. Keep reports outside the input folder on repeated scans. Only matching rows are held in memory. No matches produces a header-only report; completely empty physical lines are ignored by the CSV parser. A missing `remote_path` column on a file with data records is an error, not a blank-path match.
+
 ## Find duplicate record IDs
 
 To check `record_id` instead, use the standalone companion script:
