@@ -21,7 +21,9 @@ param(
     [string]$OutputPath,
     [switch]$Recurse,
     [switch]$IgnoreCase,
-    [char]$Delimiter = ','
+    [char]$Delimiter = ',',
+    [ValidateRange(1, 3600)]
+    [int]$ProgressIntervalSeconds = 5
 )
 
 $ErrorActionPreference = 'Stop'
@@ -42,6 +44,7 @@ if (-not (Test-Path -LiteralPath $reportDirectory -PathType Container)) {
     throw "Report folder does not exist: $reportDirectory"
 }
 
+Write-Host "[$(Get-Date -Format 'HH:mm:ss')] Discovering CSV files in $($folder.FullName)..."
 $files = @(Get-ChildItem -LiteralPath $folder.FullName -Filter '*.csv' -File -Recurse:$Recurse |
     Where-Object { $_.FullName -ne $reportPath } | Sort-Object FullName)
 if ($files.Count -eq 0) {
@@ -53,9 +56,14 @@ if ($IgnoreCase) { $comparer = [System.StringComparer]::OrdinalIgnoreCase }
 $seen = [System.Collections.Generic.Dictionary[string, object]]::new($comparer)
 $totalRows = 0L
 $blankRows = 0L
+$fileNumber = 0
+$elapsed = [System.Diagnostics.Stopwatch]::StartNew()
+$lastProgressSeconds = 0.0
+Write-Host "[$(Get-Date -Format 'HH:mm:ss')] Found $($files.Count) CSV files. Starting scan."
 
 foreach ($file in $files) {
-    Write-Verbose "Reading $($file.FullName)"
+    $fileNumber++
+    Write-Host "[$(Get-Date -Format 'HH:mm:ss')] Reading file $fileNumber/$($files.Count): $($file.FullName)"
     $dataRow = 0L
     Import-Csv -LiteralPath $file.FullName -Delimiter $Delimiter -Encoding UTF8 | ForEach-Object {
         $dataRow++
@@ -79,9 +87,15 @@ foreach ($file in $files) {
             }
             $seen[$remotePath].Add($occurrence)
         }
+        if (($elapsed.Elapsed.TotalSeconds - $lastProgressSeconds) -ge $ProgressIntervalSeconds) {
+            Write-Host "[$(Get-Date -Format 'HH:mm:ss')] File $fileNumber/$($files.Count): $dataRow rows read; total $totalRows rows; $($seen.Count) unique paths; $blankRows blank paths skipped; elapsed $($elapsed.Elapsed.ToString('hh\:mm\:ss'))."
+            $lastProgressSeconds = $elapsed.Elapsed.TotalSeconds
+        }
     }
+    Write-Host "[$(Get-Date -Format 'HH:mm:ss')] Finished file $fileNumber/$($files.Count): $dataRow rows; total $totalRows rows."
 }
 
+Write-Host "[$(Get-Date -Format 'HH:mm:ss')] Building duplicate report from $($seen.Count) unique paths..."
 $duplicateGroups = 0L
 $duplicateRows = 0L
 $report = @(
@@ -101,6 +115,7 @@ $report = @(
     }
 )
 
+Write-Host "[$(Get-Date -Format 'HH:mm:ss')] Writing $duplicateRows duplicate rows to $reportPath..."
 if ($report.Count -gt 0) {
     $report | Export-Csv -LiteralPath $reportPath -NoTypeInformation -Encoding UTF8 -NoClobber
 }
@@ -110,6 +125,8 @@ else {
         Out-File -LiteralPath $reportPath -Encoding UTF8 -NoClobber
 }
 
+$elapsed.Stop()
+Write-Host "[$(Get-Date -Format 'HH:mm:ss')] Completed in $($elapsed.Elapsed.ToString('hh\:mm\:ss'))."
 Write-Host "Scanned $($files.Count) CSV files and $totalRows data rows; skipped $blankRows blank paths."
 Write-Host "Found $duplicateGroups duplicated paths across $duplicateRows rows."
 Write-Host "Report: $reportPath"
