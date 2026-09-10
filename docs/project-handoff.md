@@ -22,4 +22,5 @@ No active implementation work or known blockers. Validate against representative
 
 ## Session log
 
+- 2026-09-10: Added timestamped console progress for discovery, each file, periodic row counts (default 5 seconds, configurable with `-ProgressIntervalSeconds`), report generation, export, and elapsed completion time. Progress uses the information stream. Validated against real CSV fixtures and a slow input simulation to exercise periodic updates; duplicate results remain unchanged.
 - 2026-09-10: Created the script and README, passed fixture validation, and prepared initial GitHub publication. This is a standalone utility with no scheduled jobs, workflows, services, or deployment requirements.

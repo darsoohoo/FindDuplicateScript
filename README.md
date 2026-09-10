@@ -15,6 +15,8 @@ Checks `remote_path` values within and across all CSV files directly in the fold
 - `-Recurse`: include subfolders.
 - `-IgnoreCase`: treat paths differing only in case as equal. Default matching is exact and case-sensitive, with whitespace preserved.
 - `-Delimiter ';'`: read semicolon-separated CSVs.
+- Console progress is enabled automatically: timestamped discovery, file start/end, report-building, export, and completion messages. During row processing, updates appear every 5 seconds with current-file rows, total rows, unique paths, skipped blanks, and elapsed time. No total-row percentage is estimated because CSVs are read once.
+- `-ProgressIntervalSeconds 10`: change the row-processing update interval (1–3600 seconds). Updates occur as records are processed; a blocked read does not produce a heartbeat. Progress uses the host/information stream, keeping it out of the CSV report.
 - CSV input is read as UTF-8. Blank paths are skipped. A CSV containing records but missing `remote_path` stops the scan.
 - The report lists every matching occurrence, including the first, with its total occurrence count, full source filename, and data row number (1 is the first record after the header). Quoted multiline fields count as one record.
 - No matches produces a header-only report. Empty and header-only input files contribute no records.
