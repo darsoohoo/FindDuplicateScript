@@ -9,8 +9,9 @@ Finds duplicate remote_path values within and across CSV files.
 .NOTES
 Matching is exact and case-sensitive by default; whitespace is preserved.
 Blank remote_path values are skipped. DataRow is the CSV record number,
-starting at 1 after the header (not the physical line number).
-The report includes every occurrence of each duplicated value.
+starting at 0 after the header (not the physical line number).
+The report includes every occurrence and its originating record_id, preserved
+as text. Missing or blank record_id values are reported as empty fields.
 #>
 [CmdletBinding()]
 param(
@@ -66,9 +67,8 @@ foreach ($file in $files) {
     Write-Host "[$(Get-Date -Format 'HH:mm:ss')] Reading file $fileNumber/$($files.Count): $($file.FullName)"
     $dataRow = 0L
     Import-Csv -LiteralPath $file.FullName -Delimiter $Delimiter -Encoding UTF8 | ForEach-Object {
-        $dataRow++
         $totalRows++
-        if ($dataRow -eq 1 -and $_.PSObject.Properties.Name -notcontains 'remote_path') {
+        if ($dataRow -eq 0 -and $_.PSObject.Properties.Name -notcontains 'remote_path') {
             throw "CSV is missing the remote_path column: $($file.FullName)"
         }
 
@@ -79,6 +79,7 @@ foreach ($file in $files) {
         else {
             $occurrence = [pscustomobject]@{
                 remote_path = $remotePath
+                record_id = [string]$_.record_id
                 SourceFile = $file.FullName
                 DataRow = $dataRow
             }
@@ -87,6 +88,7 @@ foreach ($file in $files) {
             }
             $seen[$remotePath].Add($occurrence)
         }
+        $dataRow++
         if (($elapsed.Elapsed.TotalSeconds - $lastProgressSeconds) -ge $ProgressIntervalSeconds) {
             Write-Host "[$(Get-Date -Format 'HH:mm:ss')] File $fileNumber/$($files.Count): $dataRow rows read; total $totalRows rows; $($seen.Count) unique paths; $blankRows blank paths skipped; elapsed $($elapsed.Elapsed.ToString('hh\:mm\:ss'))."
             $lastProgressSeconds = $elapsed.Elapsed.TotalSeconds
@@ -106,6 +108,7 @@ $report = @(
             foreach ($occurrence in $entry.Value) {
                 [pscustomobject]@{
                     remote_path = $occurrence.remote_path
+                    record_id = $occurrence.record_id
                     OccurrenceCount = $entry.Value.Count
                     SourceFile = $occurrence.SourceFile
                     DataRow = $occurrence.DataRow
@@ -121,7 +124,7 @@ if ($report.Count -gt 0) {
 }
 else {
     # Write a header-only report when there are no duplicates.
-    '"remote_path","OccurrenceCount","SourceFile","DataRow"' |
+    '"remote_path","record_id","OccurrenceCount","SourceFile","DataRow"' |
         Out-File -LiteralPath $reportPath -Encoding UTF8 -NoClobber
 }
 
