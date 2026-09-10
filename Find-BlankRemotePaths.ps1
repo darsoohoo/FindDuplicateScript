@@ -5,8 +5,8 @@ Finds CSV rows whose remote_path is empty or contains only whitespace.
 .EXAMPLE
 .\Find-BlankRemotePaths.ps1 -FolderPath 'C:\Data\CsvFiles'
 .NOTES
-Reports all original columns plus SourceFile and DataRow (1-based CSV record
-number after the header). Metadata names gain underscores if input names clash.
+Reports all original columns plus SourceFile and DataRow (0-based CSV record
+index after the header). Metadata names gain underscores if input names clash.
 CSV "" is an empty value. Completely empty physical lines are ignored by Import-Csv.
 #>
 [CmdletBinding()]
@@ -54,9 +54,8 @@ foreach ($file in $files) {
     $dataRow = 0L
     Write-Host "[$(Get-Date -Format 'HH:mm:ss')] Reading file $fileNumber/$($files.Count): $($file.FullName)"
     Import-Csv -LiteralPath $file.FullName -Delimiter $Delimiter -Encoding UTF8 | ForEach-Object {
-        $dataRow++
         $totalRows++
-        if ($dataRow -eq 1) {
+        if ($dataRow -eq 0) {
             if ($_.PSObject.Properties.Name -notcontains 'remote_path') {
                 throw "CSV is missing the remote_path column: $($file.FullName)"
             }
@@ -67,6 +66,7 @@ foreach ($file in $files) {
         if ([string]::IsNullOrWhiteSpace([string]$_.remote_path)) {
             $matches.Add([pscustomobject]@{ Row = $_; SourceFile = $file.FullName; DataRow = $dataRow })
         }
+        $dataRow++
         if (($elapsed.Elapsed.TotalSeconds - $lastProgressSeconds) -ge $ProgressIntervalSeconds) {
             Write-Host "[$(Get-Date -Format 'HH:mm:ss')] File $fileNumber/$($files.Count): $dataRow rows read; total $totalRows rows; $($matches.Count) blank paths found; elapsed $($elapsed.Elapsed.ToString('hh\:mm\:ss'))."
             $lastProgressSeconds = $elapsed.Elapsed.TotalSeconds
