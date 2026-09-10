@@ -1,5 +1,17 @@
 # Find duplicate remote paths
 
+## Find duplicate record IDs
+
+To check `record_id` instead, use the standalone companion script:
+
+```powershell
+.\Find-DuplicateRecordIds.ps1 -FolderPath 'C:\Data\CsvFiles' -OutputPath 'C:\Reports\duplicate-record-ids.csv'
+```
+
+It finds matching IDs within and across CSV files and reports every occurrence with `record_id`, `OccurrenceCount`, `SourceFile`, and `DataRow`. IDs are compared as text, so `001` and `1` remain different. Blank IDs are skipped; matching is case-sensitive by default. All options below, including console progress, also apply to this script. Without `-OutputPath`, it writes `duplicate-record-ids.csv` inside the input folder. Keep reports from either script outside the input folder before subsequent scans.
+
+## Find duplicate remote paths
+
 Run in PowerShell 5.1 or later:
 
 ```powershell
