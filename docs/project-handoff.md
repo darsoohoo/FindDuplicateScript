@@ -2,7 +2,7 @@
 
 ## Purpose and architecture
 
-A standalone PowerShell 5.1+ script for users checking duplicate `remote_path` values within and across a folder of CSV files. Uses built-in CSV parsing and an in-memory dictionary; no external dependencies or authentication are needed to run it.
+Two standalone PowerShell 5.1+ scripts for users checking duplicate `remote_path` or `record_id` values within and across a folder of CSV files. Each uses built-in CSV parsing and an in-memory dictionary; no external dependencies or authentication are needed to run it.
 
 ## Current status and decisions
 
@@ -12,6 +12,7 @@ Implemented exact matching, optional case-insensitive matching, recursive discov
 
 ```powershell
 .\Find-DuplicateRemotePaths.ps1 -FolderPath 'C:\Data\CsvFiles' -OutputPath 'C:\Reports\duplicates.csv'
+.\Find-DuplicateRecordIds.ps1 -FolderPath 'C:\Data\CsvFiles' -OutputPath 'C:\Reports\duplicate-record-ids.csv'
 ```
 
 The output directory must already exist. See README.md for options. Validation used temporary CSV fixtures and passed same-file and cross-file matching, quoted commas, blank values, case-sensitive and case-insensitive matching, no-match output, and overwrite protection.
@@ -22,5 +23,6 @@ No active implementation work or known blockers. Validate against representative
 
 ## Session log
 
+- 2026-09-10: Added standalone Find-DuplicateRecordIds.ps1 with the same options and console progress as the remote-path checker. IDs stay strings (leading zeros preserved). Reports include all duplicate occurrences and source locations. Fixture validation passed duplicate counts, leading zeros, case sensitivity, blank IDs, quoted commas, recursive discovery, overwrite protection, custom delimiter, no matches, missing-column errors, and progress messages. Next step: validate against representative user CSVs.
 - 2026-09-10: Added timestamped console progress for discovery, each file, periodic row counts (default 5 seconds, configurable with `-ProgressIntervalSeconds`), report generation, export, and elapsed completion time. Progress uses the information stream. Validated against real CSV fixtures and a slow input simulation to exercise periodic updates; duplicate results remain unchanged.
 - 2026-09-10: Created the script and README, passed fixture validation, and prepared initial GitHub publication. This is a standalone utility with no scheduled jobs, workflows, services, or deployment requirements.
