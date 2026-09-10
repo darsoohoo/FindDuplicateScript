@@ -8,8 +8,8 @@ Finds duplicate remote_path values within and across CSV files.
 .\Find-DuplicateRemotePaths.ps1 -FolderPath 'C:\Data\CsvFiles' -Recurse -IgnoreCase -OutputPath 'C:\Reports\duplicates.csv'
 .NOTES
 Matching is exact and case-sensitive by default; whitespace is preserved.
-Blank remote_path values are skipped. DataRow is the CSV record number,
-starting at 0 after the header (not the physical line number).
+Blank remote_path values are skipped. DataRow uses spreadsheet row numbering:
+the header is row 1 and the first data record is row 2 (not physical text lines).
 The report includes every occurrence and its originating record_id, preserved
 as text. Missing or blank record_id values are reported as empty fields.
 #>
@@ -81,7 +81,7 @@ foreach ($file in $files) {
                 remote_path = $remotePath
                 record_id = [string]$_.record_id
                 SourceFile = $file.FullName
-                DataRow = $dataRow
+                DataRow = $dataRow + 2
             }
             if (-not $seen.ContainsKey($remotePath)) {
                 $seen.Add($remotePath, [System.Collections.Generic.List[object]]::new())
