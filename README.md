@@ -2,6 +2,8 @@
 
 ## Find blank remote paths
 
+The report always includes `record_id` from each originating CSV row as its first column, preserving leading zeros. Missing IDs produce empty fields. Header-only reports also include `record_id`.
+
 ```powershell
 .\Find-BlankRemotePaths.ps1 -FolderPath 'C:\Data\CsvFiles' -OutputPath 'C:\Reports\blank-remote-paths.csv'
 ```
