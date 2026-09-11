@@ -7,6 +7,8 @@ Finds CSV rows whose remote_path is empty or contains only whitespace.
 .NOTES
 Reports all original columns plus SourceFile and DataRow (0-based CSV record
 index after the header). Metadata names gain underscores if input names clash.
+record_id is always included and preserves the source value as text; missing
+IDs produce empty fields. It is also included in header-only reports.
 CSV "" is an empty value. Completely empty physical lines are ignored by Import-Csv.
 #>
 [CmdletBinding()]
@@ -43,6 +45,10 @@ if ($files.Count -eq 0) { throw "No CSV files found in: $($folder.FullName)" }
 $matches = [System.Collections.Generic.List[object]]::new()
 $columns = [System.Collections.Generic.List[string]]::new()
 $columnSet = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+foreach ($name in @('record_id', 'remote_path')) {
+    $columns.Add($name)
+    [void]$columnSet.Add($name)
+}
 $totalRows = 0L
 $fileNumber = 0
 $elapsed = [System.Diagnostics.Stopwatch]::StartNew()
@@ -76,7 +82,6 @@ foreach ($file in $files) {
 }
 
 # Use the union of input columns so differing CSV schemas do not lose fields.
-if ($columns.Count -eq 0) { $columns.Add('remote_path'); [void]$columnSet.Add('remote_path') }
 $sourceColumn = 'SourceFile'
 while ($columnSet.Contains($sourceColumn)) { $sourceColumn = '_' + $sourceColumn }
 $rowColumn = 'DataRow'

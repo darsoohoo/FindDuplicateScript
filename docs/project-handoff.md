@@ -24,6 +24,7 @@ No active implementation work or known blockers. Validate against representative
 
 ## Session log
 
+- 2026-09-10: Made record_id an explicit first column in every blank-path report, including no-match and empty-input reports. Existing source IDs are preserved; missing IDs remain blank. DataRow numbering is unchanged. Validated IDs with leading zeros, mixed input schemas, missing IDs, row indexes, and header-only output.
 - 2026-09-10: Clarified requested numbering: only the remote-path duplicate report now uses spreadsheet rows (header 1, first data record 2). Blank-path and record-ID scripts retain their existing numbering. Validated source IDs, first/later duplicate rows, per-file reset, multiline records, and progress totals.
 - 2026-09-10: Remote-path duplicate reports now include each originating record_id as text and use zero-based DataRow, consistent with the blank-path report. Missing/blank IDs produce empty report fields; duplicate detection still depends only on remote_path. Updated the no-match header and README. Validated ID-to-occurrence mapping, leading zeros, missing IDs, per-file indexes, counts, and no-match schema.
 - 2026-09-10: Changed the blank-path report DataRow to a zero-based record index as requested (first record = 0); increments now occur after capturing matches. Progress still shows rows processed. Duplicate-checker numbering remains one-based. Validated first/later matches, per-file reset, progress totals, multiline CSV records, and missing-column handling.
